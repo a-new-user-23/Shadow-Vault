@@ -3,3 +3,4 @@ cryptography
 stegano
 Pillow
 filetype
+opencv-python-headless
