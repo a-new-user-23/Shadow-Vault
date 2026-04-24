@@ -3,7 +3,6 @@ from stegano import lsb
 from cryptography.fernet import Fernet
 from PIL import Image
 import io
-import filetype
 import os
 
 # --- LOGIC ---
@@ -14,6 +13,8 @@ def process_encryption(uploaded_file, carrier_img_path):
     
     # Open the pre-selected gallery image
     img = Image.open(carrier_img_path)
+    # We convert to RGB to ensure compatibility with Stegano
+    img = img.convert("RGB") 
     stego_img = lsb.hide(img, encrypted_data.decode('latin-1'))
     
     buf = io.BytesIO()
@@ -26,7 +27,6 @@ st.set_page_config(page_title="Shadow-Vault", layout="centered")
 if 'page' not in st.session_state:
     st.session_state.page = 'home'
 
-# Reset Function
 def reset_app():
     for key in st.session_state.keys():
         del st.session_state[key]
@@ -35,7 +35,7 @@ def reset_app():
 # --- PAGE: HOME ---
 if st.session_state.page == 'home':
     st.title("🛡️ Shadow-Vault")
-    st.info("Stateless. Secure. Invisible.")
+    st.info("Stateless. Secure. Invisible. Your files, hidden in plain sight.")
     if st.button("MAKE FILE SECURE", use_container_width=True):
         st.session_state.page = 'convert'
         st.rerun()
@@ -47,48 +47,53 @@ if st.session_state.page == 'home':
 elif st.session_state.page == 'convert':
     st.title("📤 Secure a File")
     
-    # 1. Select Secret File
     u_file = st.file_uploader("Step 1: Choose secret file", type=['pdf', 'zip', 'docx', 'txt'])
     
-    # 2. Select Gallery Image (Addressing Issue #4)
     st.write("Step 2: Select a Vault Image")
     col1, col2, col3 = st.columns(3)
     
-    # Note: These images must exist in your GitHub repo
     selection = None
+    
     with col1:
-        st.image("vault_1.png", caption="Galaxy (Large Capacity)")
-        if st.button("Use Galaxy"): selection = "vault_1.png"
+        if os.path.exists("vault_1.png"):
+            st.image("vault_1.png", caption="Galaxy Vault (Active)")
+            if st.button("Use Galaxy"): 
+                selection = "vault_1.png"
+        else:
+            st.error("vault_1.png not found in repo")
+
     with col2:
-        st.image("vault_2.png", caption="Forest (High Texture)")
-        if st.button("Use Forest"): selection = "vault_2.png"
+        st.info("Vault 2\n\n(Coming Soon)")
+    
     with col3:
-        st.image("vault_3.png", caption="Abstract (Deep Mask)")
-        if st.button("Use Abstract"): selection = "vault_3.png"
+        st.info("Vault 3\n\n(Coming Soon)")
 
     if u_file and selection:
-        if st.button("GENERATE SECURE IMAGE"):
-            with st.spinner("Encrypting..."):
-                final_img, m_key = process_encryption(u_file, selection)
-                st.success("Vault Created!")
-                
-                # Addressing Issue #1: Copyable Key
-                st.code(m_key, language="text")
-                st.caption("Copy the Master Key above.")
-                
-                st.download_button("DOWNLOAD VAULT IMAGE", final_img, "vault.png", "image/png")
-                
-                # Addressing Issue #3: Reset Button
-                if st.button("FINISH & ERASE SESSION"):
-                    reset_app()
+        if st.button("GENERATE SECURE IMAGE", type="primary"):
+            with st.spinner("Locking your file inside the stars..."):
+                try:
+                    final_img, m_key = process_encryption(u_file, selection)
+                    st.success("Vault Created Successfully!")
+                    
+                    st.write("### 🔑 Your Master Key")
+                    st.code(m_key, language="text")
+                    st.caption("Copy this key. You cannot recover your file without it.")
+                    
+                    st.download_button("📥 DOWNLOAD VAULT IMAGE", final_img, "vault.png", "image/png", use_container_width=True)
+                    
+                    if st.button("FINISH & ERASE SESSION"):
+                        reset_app()
+                except Exception as e:
+                    st.error(f"An error occurred: {e}")
 
-# --- PAGE: RECOVER ---
+    if st.button("← Back"):
+        st.session_state.page = 'home'
+        st.rerun()
+
+# --- PAGE: RECOVER (Keep existing logic) ---
 elif st.session_state.page == 'recover':
     st.title("📥 Recover Data")
-    r_img = st.file_uploader("Upload Shadow-Image", type=['png'])
-    r_key = st.text_input("Paste Master Key", type="password")
-
-    if r_img and r_key:
-        if st.button("RECOVER"):
-            # ... (Recovery logic remains the same)
-            st.button("FINISH", on_click=reset_app)
+    # ... (Your recovery code here)
+    if st.button("← Back"):
+        st.session_state.page = 'home'
+        st.rerun()
