@@ -78,7 +78,7 @@ elif st.session_state.page == 'convert':
     if st.button("← Back to Menu"):
         reset_and_clear()
 
-# --- PAGE: RECOVER (Full Logic Added) ---
+# --- PAGE: RECOVER ---
 elif st.session_state.page == 'recover':
     st.title("📥 Recover Data")
     
@@ -91,12 +91,20 @@ elif st.session_state.page == 'recover':
                 recovered_bytes = process_recovery(r_img, r_key)
                 
                 if recovered_bytes:
-                    st.success("✅ File Successfully Extracted!")
-                    # We provide a generic 'recovered_file' name since extensions are encrypted
+                    import filetype # Guess the file extension
+                    kind = filetype.guess(recovered_bytes)
+                    
+                    # If we find the extension, use it; otherwise, default to 'bin'
+                    ext = kind.extension if kind else "bin"
+                    mime = kind.mime if kind else "application/octet-stream"
+                    
+                    st.success(f"✅ {ext.upper()} File Successfully Extracted!")
+                    
                     st.download_button(
                         label="📥 DOWNLOAD RECOVERED FILE",
                         data=recovered_bytes,
-                        file_name="recovered_secret_file", 
+                        file_name=f"decrypted_vault_file.{ext}", 
+                        mime=mime,
                         use_container_width=True
                     )
                 else:
