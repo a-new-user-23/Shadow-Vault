@@ -221,14 +221,15 @@ if st.session_state.page == "home":
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    _, c1, c2, _ = st.columns([1,2,2,1])
+    # PERFECT SYMMETRY
+    left_space, btn1, gap, btn2, right_space = st.columns([2, 3, 0.5, 3, 2])
 
-    with c1:
+    with btn1:
         if st.button("START ENCRYPTION"):
             st.session_state.page = "convert"
             st.rerun()
 
-    with c2:
+    with btn2:
         if st.button("START RECOVERY"):
             st.session_state.page = "recover"
             st.rerun()
@@ -246,7 +247,8 @@ elif st.session_state.page == "convert":
 
     if u_file and not st.session_state.vault_created:
 
-        _, mid, _ = st.columns([1,1,1])
+        # CENTERED BUTTON
+        left, mid, right = st.columns([3, 4, 3])
 
         with mid:
             if st.button("GENERATE VAULT"):
@@ -261,7 +263,6 @@ elif st.session_state.page == "convert":
                         st.session_state.m_key = m_key.encode()
                         st.session_state.vault_created = True
                         st.rerun()
-
                 else:
                     st.error("Carrier 'vault_1.png' not found.")
 
@@ -280,7 +281,6 @@ elif st.session_state.page == "convert":
             "vault.png"
         )
 
-        # NEW BACK BUTTON
         if st.button("← Back To Home"):
             reset_and_clear()
 
@@ -302,7 +302,8 @@ elif st.session_state.page == "recover":
 
     if r_img and r_key:
 
-        _, mid, _ = st.columns([1,1,1])
+        # CENTERED BUTTON
+        left, mid, right = st.columns([3, 4, 3])
 
         with mid:
             if st.button("EXTRACT SECURE DATA"):
@@ -315,15 +316,16 @@ elif st.session_state.page == "recover":
                 if bytes_data:
                     st.balloons()
 
+                    kind = filetype.guess(bytes_data)
+                    file_type = kind.extension.upper() if kind else "Unknown"
+
                     # ONLY META DATA
                     clean_meta = {
                         "File Name": meta["filename"],
+                        "File Type": file_type,
                         "File Size": f'{meta["size"]} bytes',
                         "Stored Date": meta["created_at"]
                     }
-
-                    kind = filetype.guess(bytes_data)
-                    clean_meta["File Type"] = kind.extension.upper() if kind else "Unknown"
 
                     st.subheader("📄 File Metadata")
                     st.json(clean_meta)
