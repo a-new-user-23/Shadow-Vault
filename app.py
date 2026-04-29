@@ -10,8 +10,10 @@ def process_encryption(uploaded_file, carrier_img_path):
     key = Fernet.generate_key()
     cipher = Fernet(key)
     encrypted_data = cipher.encrypt(uploaded_file.read())
-    img = Image.open(carrier_img_path).convert("RGB") 
-    stego_img = lsb.hide(img, encrypted_data.decode('latin-1'))
+    stego_img = lsb.hide(
+    carrier_img_path,
+    encrypted_data.decode("latin-1")
+)
     buf = io.BytesIO()
     stego_img.save(buf, format="PNG")
     return buf.getvalue(), key.decode()
