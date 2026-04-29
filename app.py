@@ -371,4 +371,4 @@ elif st.session_state.page == "recover":
                         reset_and_clear()
 
                 else:
-                    st.error("Verification failed. Incorrect key or corrupt image.") . 
+                    st.error("Verification failed. Incorrect key or corrupt image.") 
