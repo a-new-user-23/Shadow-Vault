@@ -25,7 +25,7 @@ st.markdown("""
         margin-bottom: 2rem;
     }
 
-    /* Equal Height Flex Containers */
+    /* Equal Height Flex Containers for Feature Cards */
     [data-testid="column"] { display: flex !important; }
     [data-testid="stVerticalBlock"] { flex: 1; display: flex; flex-direction: column; }
 
@@ -40,18 +40,29 @@ st.markdown("""
         display: flex;
         flex-direction: column;
     }
-    
-    .feature-card h4 { color: #1e293b; margin-top: 10px; font-size: 1.2rem; }
-    .feature-card p { color: #64748b; font-size: 0.9rem; line-height: 1.5; }
 
+    /* Unified Button Styling - Red-Coral Theme */
     .stButton>button { 
-        width: 100%; max-width: 350px; margin: 10px auto; display: block;
-        border-radius: 8px; height: 3.5em; font-weight: 600; 
+        width: 100%; 
+        border-radius: 8px; 
+        height: 3.5em; 
+        font-weight: 600; 
+        background-color: #ff4b4b !important; 
+        color: white !important;
+        border: none;
+        transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+    .stButton>button:hover { 
+        transform: scale(1.02);
+        background-color: #ff3333 !important;
     }
     
     .stDownloadButton>button { 
-        width: 100%; max-width: 350px; margin: 10px auto; display: block;
-        border-radius: 8px; height: 3.5em; background-color: #28a745 !important; color: white !important; 
+        width: 100%; 
+        border-radius: 8px; 
+        height: 3.5em; 
+        background-color: #28a745 !important; 
+        color: white !important; 
     }
     </style>
     """, unsafe_allow_html=True)
@@ -92,13 +103,30 @@ def reset_and_clear():
     for key in list(st.session_state.keys()): del st.session_state[key]
     st.rerun()
 
-# --- SIDEBAR ---
+# --- SIDEBAR (Includes Navigation and About Section) ---
 with st.sidebar:
     st.markdown("## 🛡️ Shadow-Vault")
+    st.caption("Secure Information Concealment")
+    st.markdown("---")
     if st.button("🏠 Home Dashboard"): st.session_state.page = 'home'; st.rerun()
     if st.button("📤 Secure a File"): st.session_state.page = 'convert'; st.rerun()
     if st.button("📥 Recover Data"): st.session_state.page = 'recover'; st.rerun()
     st.markdown("---")
+    
+    # "About This Tool" placed in the sidebar as requested
+    with st.expander("📖 About This Tool", expanded=False):
+        st.info("""
+        **Capabilities:**
+        - Conceals files inside PNG pixels.
+        - Supported: PDF, ZIP, DOCX, TXT.
+        - Max File Size: 10MB.
+        
+        **Privacy Policy:**
+        - We do not store any data.
+        - All files are processed in real-time RAM.
+        - Session data is wiped on exit or reset.
+        """)
+        
     if st.button("🗑️ Reset Session"): reset_and_clear()
 
 # --- PAGE: HOME ---
@@ -106,50 +134,40 @@ if st.session_state.page == 'home':
     st.markdown("""
         <div class='hero-text'>
             <h1>SHADOW-VAULT</h1>
-            <p>Advanced File Concealment & Privacy Suite</p>
+            <p>Enterprise-Grade Steganography & AES-256 Privacy</p>
         </div>
     """, unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
     with col1:
         st.markdown("""<div class='feature-card'><h3>🔐</h3><h4>AES-256 Encryption</h4>
-        <p>Before concealment, your file is transformed into unreadable ciphertext using industry-standard 256-bit encryption.</p></div>""", unsafe_allow_html=True)
+        <p>Your file is encrypted into unreadable ciphertext using industry-standard Fernet (AES-256) encryption before hiding.</p></div>""", unsafe_allow_html=True)
     with col2:
         st.markdown("""<div class='feature-card'><h3>🖼️</h3><h4>Steganography</h4>
-        <p>Your encrypted data is injected into the Least Significant Bits (LSB) of a PNG image, making it invisible to the human eye.</p></div>""", unsafe_allow_html=True)
+        <p>Data is injected into the Least Significant Bits (LSB) of image pixels, maintaining a standard PNG appearance.</p></div>""", unsafe_allow_html=True)
     with col3:
         st.markdown("""<div class='feature-card'><h3>🔑</h3><h4>Master Key Gen</h4>
-        <p>A unique, non-recoverable Master Key is generated per session. Without this exact key, the vault remains locked forever.</p></div>""", unsafe_allow_html=True)
+        <p>A unique, one-time Master Key is generated per session. It is the only way to decrypt and recover your hidden files.</p></div>""", unsafe_allow_html=True)
 
-    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.markdown("<br><br><h3 style='text-align: center;'>Select Operation</h3>", unsafe_allow_html=True)
     
-    # Action Buttons
-    _, center_col, _ = st.columns([1, 1, 1])
-    with center_col:
-        if st.button("START ENCRYPTION", type="primary"):
+    # --- SYMMETRICAL HORIZONTAL BUTTONS ---
+    _, left_btn, right_btn, _ = st.columns([1, 2, 2, 1])
+    with left_btn:
+        if st.button("START ENCRYPTION"):
             st.session_state.page = 'convert'
             st.rerun()
+    with right_btn:
         if st.button("START RECOVERY"):
             st.session_state.page = 'recover'
             st.rerun()
-        
-        # Info Button/Expander
-        with st.expander("ℹ️ Important Security Disclosure"):
-            st.write("""
-            **Supported File Types:** PDF, ZIP, DOCX, TXT (Max 10MB).
-            
-            **Privacy Policy:**
-            - We **do not store** your uploaded files or keys. 
-            - All processing happens in temporary server RAM and is wiped immediately after your session ends or you click 'Reset'.
-            - Your Master Key is the only way to recover data. If you lose it, we cannot help you.
-            """)
 
 # --- PAGE: CONVERT ---
 elif st.session_state.page == 'convert':
     st.markdown("### 📤 Secure Your Data")
     u_file = st.file_uploader("Upload Secret File", type=['pdf', 'zip', 'docx', 'txt'])
     if u_file and not st.session_state.vault_created:
-        if st.button("GENERATE VAULT", type="primary"):
+        if st.button("GENERATE VAULT"):
             if os.path.exists("vault_1.png"):
                 with st.spinner("Locking Vault..."):
                     final_img, m_key = process_encryption(u_file, "vault_1.png")
@@ -158,7 +176,7 @@ elif st.session_state.page == 'convert':
             else: st.error("System file 'vault_1.png' missing.")
     
     if st.session_state.vault_created:
-        st.success("✅ Vault Created")
+        st.success("✅ Vault Created Successfully")
         st.download_button("🔑 DOWNLOAD MASTER KEY", st.session_state.m_key, "master_key.key")
         st.download_button("📥 DOWNLOAD VAULT IMAGE", st.session_state.final_img, "vault.png")
 
@@ -168,9 +186,12 @@ elif st.session_state.page == 'recover':
     r_img = st.file_uploader("Upload Vault Image", type=['png'])
     r_key = st.file_uploader("Upload Master Key", type=['key', 'txt'])
     if r_img and r_key:
-        if st.button("EXTRACT DATA", type="primary"):
+        if st.button("EXTRACT SECURE DATA"):
             bytes_data, meta = process_recovery(r_img, r_key.read().decode().strip())
             if bytes_data:
-                st.balloons(); st.json(meta)
-                st.download_button("📥 SAVE FILE", bytes_data, meta["filename"])
-            else: st.error("Verification failed.")
+                st.balloons()
+                st.markdown("#### ✅ File Verified")
+                st.json(meta)
+                st.download_button("📥 SAVE RECOVERED FILE", bytes_data, meta["filename"])
+            else:
+                st.error("Verification failed. Incorrect key or corrupt image.")
