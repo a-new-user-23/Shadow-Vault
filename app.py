@@ -131,10 +131,10 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+MAX_FILE_SIZE = 10 * 1024 * 1024
 
 
-# --- CORE LOGIC ---
+# ---------- CORE LOGIC ----------
 def process_encryption(uploaded_file, carrier_img_path):
     key = Fernet.generate_key()
     cipher = Fernet(key)
@@ -151,10 +151,13 @@ def process_encryption(uploaded_file, carrier_img_path):
     payload_json = json.dumps(payload)
     encrypted_data = cipher.encrypt(payload_json.encode())
 
-    stego_img = lsb.hide(
-        carrier_img_path,
-        encrypted_data.decode("latin-1")
-    )
+    try:
+        stego_img = lsb.hide(
+            carrier_img_path,
+            encrypted_data.decode("latin-1")
+        )
+    except Exception as e:
+        raise Exception("Carrier image too small. Use larger image.") from e
 
     buf = io.BytesIO()
     stego_img.save(buf, format="PNG")
@@ -180,7 +183,7 @@ def process_recovery(stego_image, master_key):
         return None, None
 
 
-# --- APP STATE ---
+# ---------- STATE ----------
 if "page" not in st.session_state:
     st.session_state.page = "home"
 
@@ -194,9 +197,9 @@ def reset_and_clear():
     st.rerun()
 
 
-# --- SIDEBAR ---
+# ---------- SIDEBAR ----------
 with st.sidebar:
-    st.markdown("<h2 style='text-align:left !important;'>🛡️ Shadow-Vault</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align:left;'>🛡️ Shadow-Vault</h2>", unsafe_allow_html=True)
     st.markdown("---")
 
     if st.button("🏠 Home Dashboard"):
@@ -213,19 +216,13 @@ with st.sidebar:
 
     st.markdown("---")
 
-    with st.expander("📖 About This Tool"):
-        st.info(
-            "Hide encrypted PDF, ZIP, DOCX, or TXT files inside PNG images.\n"
-            "Max size 10MB.\n"
-            "No data is ever stored on our servers."
-        )
-
     if st.button("🗑️ Reset Session"):
         reset_and_clear()
 
 
-# --- HOME ---
+# ---------- HOME ----------
 if st.session_state.page == "home":
+
     st.markdown("""
     <div class='hero-container'>
         <h1 class='main-title'>SHADOW-VAULT</h1>
@@ -236,139 +233,80 @@ if st.session_state.page == "home":
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.markdown("""
-        <div class='feature-card'>
-        <h2 style='font-size:3rem;'>🔐</h2>
-        <h3>AES-256</h3>
-        <p style='color:#94a3b8;'>Your files are double-locked using Fernet encryption before pixel injection.</p>
-        </div>
-        """, unsafe_allow_html=True)
-
+        st.markdown("<div class='feature-card'>🔐 Encryption</div>", unsafe_allow_html=True)
     with col2:
-        st.markdown("""
-        <div class='feature-card'>
-        <h2 style='font-size:3rem;'>🖼️</h2>
-        <h3>Stealth Mode</h3>
-        <p style='color:#94a3b8;'>Data is hidden in PNG pixels, making it undetectable.</p>
-        </div>
-        """, unsafe_allow_html=True)
-
+        st.markdown("<div class='feature-card'>🖼️ Steganography</div>", unsafe_allow_html=True)
     with col3:
-        st.markdown("""
-        <div class='feature-card'>
-        <h2 style='font-size:3rem;'>📦</h2>
-        <h3>Full Meta</h3>
-        <p style='color:#94a3b8;'>Original filename, size and timestamp preserved.</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("<div class='feature-card'>🔑 Master Key</div>", unsafe_allow_html=True)
 
-    st.markdown("<br><br><h3 style='text-align:center;'>Select Operation</h3>", unsafe_allow_html=True)
+    c1, c2 = st.columns(2)
 
-    l, b1, g, b2, r = st.columns([2, 3, 0.5, 3, 2])
-
-    with b1:
+    with c1:
         if st.button("START ENCRYPTION"):
             st.session_state.page = "convert"
             st.rerun()
 
-    with b2:
+    with c2:
         if st.button("START RECOVERY"):
             st.session_state.page = "recover"
             st.rerun()
 
 
-# --- ENCRYPT PAGE ---
+# ---------- ENCRYPT ----------
 elif st.session_state.page == "convert":
-    st.markdown("### 📤 Create a Secure Vault")
 
-    u_file = st.file_uploader(
-        "Upload File to Hide",
-        type=["pdf", "zip", "docx", "txt"]
-    )
+    st.header("Encrypt File")
+
+    u_file = st.file_uploader("Upload File")
 
     if u_file:
-        if u_file.size > MAX_FILE_SIZE:
-            st.error("❌ File size too large. Maximum allowed size is 10 MB.")
+        if len(u_file.getvalue()) > MAX_FILE_SIZE:
+            st.error("File too large (Max 10MB)")
             st.stop()
 
-    if u_file and not st.session_state.vault_created:
-        _, mid, _ = st.columns([3, 4, 3])
+    if u_file and st.button("Generate Vault"):
 
-        with mid:
-            if st.button("GENERATE VAULT"):
-                with st.spinner("Locking Vault..."):
-                    final_img, m_key = process_encryption(
-                        u_file,
-                        "vault_1.png"
-                    )
+        try:
+            img, key = process_encryption(u_file, "vault_1.png")
 
-                    st.session_state.final_img = final_img
-                    st.session_state.m_key = m_key.encode()
-                    st.session_state.vault_created = True
-                    st.rerun()
+            st.session_state.vault_created = True
+            st.session_state.img = img
+            st.session_state.key = key.encode()
+
+            st.success("Vault Created")
+
+        except Exception as e:
+            st.error(str(e))
+
 
     if st.session_state.vault_created:
-        st.success("✅ Vault Successfully Created")
+        st.download_button("Download Key", st.session_state.key, "key.key")
+        st.download_button("Download Vault", st.session_state.img, "vault.png")
 
-        st.download_button(
-            "🔑 DOWNLOAD MASTER KEY",
-            st.session_state.m_key,
-            "master_key.key"
-        )
-
-        st.download_button(
-            "📥 DOWNLOAD VAULT IMAGE",
-            st.session_state.final_img,
-            "vault.png"
-        )
-
-        if st.button("← Back To Home"):
+        if st.button("Back"):
             reset_and_clear()
 
 
-# --- RECOVER PAGE ---
+# ---------- RECOVER ----------
 elif st.session_state.page == "recover":
-    st.markdown("### 📥 Extract Hidden Data")
 
-    r_img = st.file_uploader(
-        "Upload Vault Image",
-        type=["png"]
-    )
+    st.header("Recover File")
 
-    r_key = st.file_uploader(
-        "Upload Master Key",
-        type=["key", "txt"]
-    )
+    img = st.file_uploader("Upload Vault", type=["png"])
+    key = st.file_uploader("Upload Key")
 
-    if r_img and r_key:
-        _, mid, _ = st.columns([3, 4, 3])
+    if img and key and st.button("Extract"):
 
-        with mid:
-            if st.button("EXTRACT SECURE DATA"):
-                bytes_data, meta = process_recovery(
-                    r_img,
-                    r_key.read().decode().strip()
-                )
+        data, meta = process_recovery(img, key.read().decode().strip())
 
-                if bytes_data:
-                    st.balloons()
+        if data:
+            st.json({
+                "filename": meta["filename"],
+                "size": meta["size"],
+                "created_at": meta["created_at"]
+            })
 
-                    clean_meta = {
-                        "filename": meta["filename"],
-                        "size_bytes": meta["size"],
-                        "created_at": meta["created_at"]
-                    }
+            st.download_button("Download File", data, meta["filename"])
 
-                    st.json(clean_meta)
-
-                    st.download_button(
-                        "📥 SAVE RECOVERED FILE",
-                        bytes_data,
-                        meta["filename"]
-                    )
-
-                    if st.button("← Back To Home"):
-                        reset_and_clear()
-
-                else:
-                    st.error("Verification failed. Incorrect key or corrupt image.")
+        else:
+            st.error("Invalid key or corrupted file")
