@@ -1,6 +1,6 @@
 streamlit
-cryptography
 stegano
-Pillow
+cryptography
+pillow
 filetype
 opencv-python-headless
