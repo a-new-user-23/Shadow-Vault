@@ -264,7 +264,7 @@ if st.session_state.page == "home":
 
     st.markdown("<br><br><h3 style='text-align:center;'>Select Operation</h3>", unsafe_allow_html=True)
 
-    l, b1, g, b2, r = st.columns([6, 3, 2, 3, 5])
+    l, b1, g, b2, r = st.columns([6, 5, 2, 3, 5])
 
     with b1:
         if st.button("START ENCRYPTION"):
