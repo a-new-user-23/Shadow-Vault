@@ -25,7 +25,7 @@ st.markdown("""
         margin-bottom: 2rem;
     }
 
-    /* Equal Height Flex Containers for Feature Cards */
+    /* FORCED EQUAL HEIGHT BOXES */
     [data-testid="column"] { display: flex !important; }
     [data-testid="stVerticalBlock"] { flex: 1; display: flex; flex-direction: column; }
 
@@ -39,22 +39,20 @@ st.markdown("""
         flex-grow: 1;
         display: flex;
         flex-direction: column;
+        justify-content: center;
+        min-height: 320px; /* Forces boxes to be the same size */
     }
 
-    /* Unified Button Styling - Red-Coral Theme */
+    /* SYMMETRICAL BUTTONS */
     .stButton>button { 
         width: 100%; 
         border-radius: 8px; 
-        height: 3.5em; 
+        height: 4em; 
         font-weight: 600; 
         background-color: #ff4b4b !important; 
         color: white !important;
         border: none;
-        transition: transform 0.2s ease, background-color 0.2s ease;
-    }
-    .stButton>button:hover { 
-        transform: scale(1.02);
-        background-color: #ff3333 !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
     
     .stDownloadButton>button { 
@@ -103,28 +101,19 @@ def reset_and_clear():
     for key in list(st.session_state.keys()): del st.session_state[key]
     st.rerun()
 
-# --- SIDEBAR (Includes Navigation and About Section) ---
+# --- SIDEBAR (Removed Tagline as requested) ---
 with st.sidebar:
-    st.markdown("## 🛡️ Shadow-Vault")
-    st.caption("Secure Information Concealment")
+    st.markdown("## 🛡️ Shadow-Vault") # Tagline removed here
     st.markdown("---")
     if st.button("🏠 Home Dashboard"): st.session_state.page = 'home'; st.rerun()
     if st.button("📤 Secure a File"): st.session_state.page = 'convert'; st.rerun()
     if st.button("📥 Recover Data"): st.session_state.page = 'recover'; st.rerun()
     st.markdown("---")
     
-    # "About This Tool" placed in the sidebar as requested
     with st.expander("📖 About This Tool", expanded=False):
         st.info("""
-        **Capabilities:**
-        - Conceals files inside PNG pixels.
-        - Supported: PDF, ZIP, DOCX, TXT.
-        - Max File Size: 10MB.
-        
-        **Privacy Policy:**
-        - We do not store any data.
-        - All files are processed in real-time RAM.
-        - Session data is wiped on exit or reset.
+        **Capabilities:** Hide PDF, ZIP, DOCX, TXT inside PNG pixels. (Max 10MB).
+        **Privacy:** No data is stored. Processing happens in RAM and is wiped on exit.
         """)
         
     if st.button("🗑️ Reset Session"): reset_and_clear()
@@ -134,30 +123,31 @@ if st.session_state.page == 'home':
     st.markdown("""
         <div class='hero-text'>
             <h1>SHADOW-VAULT</h1>
-            <p>Enterprise-Grade Steganography & AES-256 Privacy</p>
+            <p>Professional Steganography & AES-256 Privacy</p>
         </div>
     """, unsafe_allow_html=True)
     
+    # Feature Boxes (Fixed Height)
     col1, col2, col3 = st.columns(3)
     with col1:
         st.markdown("""<div class='feature-card'><h3>🔐</h3><h4>AES-256 Encryption</h4>
-        <p>Your file is encrypted into unreadable ciphertext using industry-standard Fernet (AES-256) encryption before hiding.</p></div>""", unsafe_allow_html=True)
+        <p>Your file is encrypted into unreadable ciphertext using industry-standard AES-256 encryption before hiding.</p></div>""", unsafe_allow_html=True)
     with col2:
         st.markdown("""<div class='feature-card'><h3>🖼️</h3><h4>Steganography</h4>
         <p>Data is injected into the Least Significant Bits (LSB) of image pixels, maintaining a standard PNG appearance.</p></div>""", unsafe_allow_html=True)
     with col3:
         st.markdown("""<div class='feature-card'><h3>🔑</h3><h4>Master Key Gen</h4>
-        <p>A unique, one-time Master Key is generated per session. It is the only way to decrypt and recover your hidden files.</p></div>""", unsafe_allow_html=True)
+        <p>A unique Master Key is generated per session. It is the only way to decrypt and recover your hidden files.</p></div>""", unsafe_allow_html=True)
 
-    st.markdown("<br><br><h3 style='text-align: center;'>Select Operation</h3>", unsafe_allow_html=True)
+    st.markdown("<br><br><h3>Select Operation</h3>", unsafe_allow_html=True)
     
-    # --- SYMMETRICAL HORIZONTAL BUTTONS ---
-    _, left_btn, right_btn, _ = st.columns([1, 2, 2, 1])
-    with left_btn:
+    # --- PERFECT HORIZONTAL SYMMETRY ---
+    _, btn_col1, btn_col2, _ = st.columns([1, 2, 2, 1])
+    with btn_col1:
         if st.button("START ENCRYPTION"):
             st.session_state.page = 'convert'
             st.rerun()
-    with right_btn:
+    with btn_col2:
         if st.button("START RECOVERY"):
             st.session_state.page = 'recover'
             st.rerun()
@@ -167,13 +157,15 @@ elif st.session_state.page == 'convert':
     st.markdown("### 📤 Secure Your Data")
     u_file = st.file_uploader("Upload Secret File", type=['pdf', 'zip', 'docx', 'txt'])
     if u_file and not st.session_state.vault_created:
-        if st.button("GENERATE VAULT"):
-            if os.path.exists("vault_1.png"):
-                with st.spinner("Locking Vault..."):
-                    final_img, m_key = process_encryption(u_file, "vault_1.png")
-                    st.session_state.final_img, st.session_state.m_key = final_img, m_key.encode()
-                    st.session_state.vault_created = True; st.rerun()
-            else: st.error("System file 'vault_1.png' missing.")
+        _, mid, _ = st.columns([1, 2, 1])
+        with mid:
+            if st.button("GENERATE VAULT"):
+                if os.path.exists("vault_1.png"):
+                    with st.spinner("Locking Vault..."):
+                        final_img, m_key = process_encryption(u_file, "vault_1.png")
+                        st.session_state.final_img, st.session_state.m_key = final_img, m_key.encode()
+                        st.session_state.vault_created = True; st.rerun()
+                else: st.error("System file 'vault_1.png' missing.")
     
     if st.session_state.vault_created:
         st.success("✅ Vault Created Successfully")
@@ -186,12 +178,13 @@ elif st.session_state.page == 'recover':
     r_img = st.file_uploader("Upload Vault Image", type=['png'])
     r_key = st.file_uploader("Upload Master Key", type=['key', 'txt'])
     if r_img and r_key:
-        if st.button("EXTRACT SECURE DATA"):
-            bytes_data, meta = process_recovery(r_img, r_key.read().decode().strip())
-            if bytes_data:
-                st.balloons()
-                st.markdown("#### ✅ File Verified")
-                st.json(meta)
-                st.download_button("📥 SAVE RECOVERED FILE", bytes_data, meta["filename"])
-            else:
-                st.error("Verification failed. Incorrect key or corrupt image.")
+        _, mid, _ = st.columns([1, 2, 1])
+        with mid:
+            if st.button("EXTRACT SECURE DATA"):
+                bytes_data, meta = process_recovery(r_img, r_key.read().decode().strip())
+                if bytes_data:
+                    st.balloons()
+                    st.json(meta)
+                    st.download_button("📥 SAVE RECOVERED FILE", bytes_data, meta["filename"])
+                else:
+                    st.error("Verification failed.")
