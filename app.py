@@ -5,6 +5,7 @@ import io
 import os
 import json
 import base64
+import zlib
 from datetime import datetime
 
 # --- CONFIGURATION & ADVANCED UI STYLING ---
@@ -131,7 +132,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 
 
 # --- CORE LOGIC ---
@@ -149,7 +150,11 @@ def process_encryption(uploaded_file, carrier_img_path):
     }
 
     payload_json = json.dumps(payload)
-    encrypted_data = cipher.encrypt(payload_json.encode())
+
+    # --- COMPRESS BEFORE ENCRYPTION ---
+    compressed = zlib.compress(payload_json.encode())
+
+    encrypted_data = cipher.encrypt(compressed)
 
     stego_img = lsb.hide(
         carrier_img_path,
@@ -167,11 +172,17 @@ def process_recovery(stego_image, master_key):
         hidden_data = lsb.reveal(stego_image)
 
         cipher = Fernet(master_key.encode())
-        decrypted_json = cipher.decrypt(
+
+        # --- DECRYPT ---
+        decrypted = cipher.decrypt(
             hidden_data.encode("latin-1")
-        ).decode()
+        )
+
+        # --- DECOMPRESS ---
+        decrypted_json = zlib.decompress(decrypted).decode()
 
         payload = json.loads(decrypted_json)
+
         recovered_bytes = base64.b64decode(payload["filedata"])
 
         return recovered_bytes, payload
@@ -216,7 +227,7 @@ with st.sidebar:
     with st.expander("📖 About This Tool"):
         st.info(
             "Hide encrypted PDF, ZIP, DOCX, or TXT files inside PNG images.\n"
-            "Max size 10MB.\n"
+            "Max size 50MB.\n"
             "No data is ever stored on our servers."
         )
 
@@ -226,6 +237,7 @@ with st.sidebar:
 
 # --- HOME ---
 if st.session_state.page == "home":
+
     st.markdown("""
     <div class='hero-container'>
         <h1 class='main-title'>SHADOW-VAULT</h1>
@@ -279,6 +291,7 @@ if st.session_state.page == "home":
 
 # --- ENCRYPT PAGE ---
 elif st.session_state.page == "convert":
+
     st.markdown("### 📤 Create a Secure Vault")
 
     u_file = st.file_uploader(
@@ -288,15 +301,18 @@ elif st.session_state.page == "convert":
 
     if u_file:
         if u_file.size > MAX_FILE_SIZE:
-            st.error("❌ File size too large. Maximum allowed size is 10 MB.")
+            st.error("❌ File size too large. Maximum allowed size is 50 MB.")
             st.stop()
 
     if u_file and not st.session_state.vault_created:
+
         _, mid, _ = st.columns([3, 4, 3])
 
         with mid:
             if st.button("GENERATE VAULT"):
+
                 with st.spinner("Locking Vault..."):
+
                     final_img, m_key = process_encryption(
                         u_file,
                         "vault_1.png"
@@ -308,6 +324,7 @@ elif st.session_state.page == "convert":
                     st.rerun()
 
     if st.session_state.vault_created:
+
         st.success("✅ Vault Successfully Created")
 
         st.download_button(
@@ -328,6 +345,7 @@ elif st.session_state.page == "convert":
 
 # --- RECOVER PAGE ---
 elif st.session_state.page == "recover":
+
     st.markdown("### 📥 Extract Hidden Data")
 
     r_img = st.file_uploader(
@@ -341,16 +359,19 @@ elif st.session_state.page == "recover":
     )
 
     if r_img and r_key:
+
         _, mid, _ = st.columns([3, 4, 3])
 
         with mid:
             if st.button("EXTRACT SECURE DATA"):
+
                 bytes_data, meta = process_recovery(
                     r_img,
                     r_key.read().decode().strip()
                 )
 
                 if bytes_data:
+
                     st.balloons()
 
                     clean_meta = {
@@ -371,4 +392,4 @@ elif st.session_state.page == "recover":
                         reset_and_clear()
 
                 else:
-                    st.error("Verification failed. Incorrect key or corrupt image.") 
+                    st.error("Verification failed. Incorrect key or corrupt image.")
