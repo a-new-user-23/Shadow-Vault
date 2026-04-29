@@ -6,6 +6,9 @@ import os
 import json
 import base64
 from datetime import datetime
+from PIL import Image
+import numpy as np
+import math
 
 # --- CONFIGURATION & ADVANCED UI STYLING ---
 st.set_page_config(
@@ -131,11 +134,13 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# Keep the original limit constant for ENCRYPTION only
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 
 
 # --- CORE LOGIC ---
-def process_encryption(uploaded_file, carrier_img_path):
+def process_encryption(uploaded_file):
+    """Dynamically generates a carrier image to prevent 'message too long' error."""
     key = Fernet.generate_key()
     cipher = Fernet(key)
 
@@ -150,11 +155,17 @@ def process_encryption(uploaded_file, carrier_img_path):
 
     payload_json = json.dumps(payload)
     encrypted_data = cipher.encrypt(payload_json.encode())
+    data_to_hide = encrypted_data.decode("latin-1")
 
-    stego_img = lsb.hide(
-        carrier_img_path,
-        encrypted_data.decode("latin-1")
-    )
+    # Math to ensure the carrier is always large enough for the payload
+    num_chars = len(data_to_hide)
+    side = int(math.ceil(math.sqrt(num_chars * 3))) + 100 
+    
+    # Create random noise carrier
+    random_array = np.random.randint(0, 255, (side, side, 3), dtype=np.uint8)
+    carrier_img = Image.fromarray(random_array)
+
+    stego_img = lsb.hide(carrier_img, data_to_hide)
 
     buf = io.BytesIO()
     stego_img.save(buf, format="PNG")
@@ -163,8 +174,11 @@ def process_encryption(uploaded_file, carrier_img_path):
 
 
 def process_recovery(stego_image, master_key):
+    """Processes recovery without size constraints."""
     try:
-        hidden_data = lsb.reveal(stego_image)
+        # Open image from stream
+        img = Image.open(stego_image)
+        hidden_data = lsb.reveal(img)
 
         cipher = Fernet(master_key.encode())
         decrypted_json = cipher.decrypt(
@@ -175,7 +189,6 @@ def process_recovery(stego_image, master_key):
         recovered_bytes = base64.b64decode(payload["filedata"])
 
         return recovered_bytes, payload
-
     except:
         return None, None
 
@@ -216,7 +229,8 @@ with st.sidebar:
     with st.expander("📖 About This Tool"):
         st.info(
             "Hide encrypted PDF, ZIP, DOCX, or TXT files inside PNG images.\n"
-            "Max size 10MB.\n"
+            "Encryption Max: 10MB.\n"
+            "Recovery: No Limit.\n"
             "No data is ever stored on our servers."
         )
 
@@ -248,8 +262,8 @@ if st.session_state.page == "home":
         st.markdown("""
         <div class='feature-card'>
         <h2 style='font-size:3rem;'>🖼️</h2>
-        <h3>Stealth Mode</h3>
-        <p style='color:#94a3b8;'>Data is hidden in PNG pixels, making it undetectable.</p>
+        <h3>Dynamic Scaling</h3>
+        <p style='color:#94a3b8;'>Carrier images are automatically resized to fit your file perfectly.</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -287,6 +301,7 @@ elif st.session_state.page == "convert":
     )
 
     if u_file:
+        # Size limit kept for encryption to prevent server timeout/crashes
         if u_file.size > MAX_FILE_SIZE:
             st.error("❌ File size too large. Maximum allowed size is 10 MB.")
             st.stop()
@@ -297,10 +312,8 @@ elif st.session_state.page == "convert":
         with mid:
             if st.button("GENERATE VAULT"):
                 with st.spinner("Locking Vault..."):
-                    final_img, m_key = process_encryption(
-                        u_file,
-                        "vault_1.png"
-                    )
+                    # Call updated function (no carrier_img_path needed)
+                    final_img, m_key = process_encryption(u_file)
 
                     st.session_state.final_img = final_img
                     st.session_state.m_key = m_key.encode()
@@ -326,8 +339,7 @@ elif st.session_state.page == "convert":
             reset_and_clear()
 
 
-
-                    # --- RECOVER PAGE ---
+# --- RECOVER PAGE ---
 elif st.session_state.page == "recover":
     st.markdown("### 📥 Extract Hidden Data")
 
@@ -341,35 +353,37 @@ elif st.session_state.page == "recover":
         type=["key", "txt"]
     )
 
+    # Note: No size check here. It will process whatever is uploaded.
     if r_img and r_key:
         _, mid, _ = st.columns([3, 4, 3])
 
         with mid:
             if st.button("EXTRACT SECURE DATA"):
-                bytes_data, meta = process_recovery(
-                    r_img,
-                    r_key.read().decode().strip()
-                )
-
-                if bytes_data:
-                    st.balloons()
-
-                    clean_meta = {
-                        "filename": meta["filename"],
-                        "size_bytes": meta["size"],
-                        "created_at": meta["created_at"]
-                    }
-
-                    st.json(clean_meta)
-
-                    st.download_button(
-                        "📥 SAVE RECOVERED FILE",
-                        bytes_data,
-                        meta["filename"]
+                with st.spinner("Decrypting pixels..."):
+                    bytes_data, meta = process_recovery(
+                        r_img,
+                        r_key.read().decode().strip()
                     )
 
-                    if st.button("← Back To Home"):
-                        reset_and_clear()
+                    if bytes_data:
+                        st.balloons()
 
-                else:
-                    st.error("Verification failed. Incorrect key or corrupt image.")
+                        clean_meta = {
+                            "filename": meta["filename"],
+                            "size_bytes": meta["size"],
+                            "created_at": meta["created_at"]
+                        }
+
+                        st.json(clean_meta)
+
+                        st.download_button(
+                            "📥 SAVE RECOVERED FILE",
+                            bytes_data,
+                            meta["filename"]
+                        )
+
+                        if st.button("← Back To Home"):
+                            reset_and_clear()
+
+                    else:
+                        st.error("Verification failed. Incorrect key or corrupt image.")
