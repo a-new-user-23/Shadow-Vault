@@ -7,7 +7,7 @@ import json
 import base64
 from datetime import datetime
 
-# --- CONFIGURATION & LUXURY UI STYLING ---
+# --- CONFIGURATION & CLEAN UI STYLING ---
 st.set_page_config(
     page_title="Shadow-Vault",
     page_icon="🛡️",
@@ -16,128 +16,108 @@ st.set_page_config(
 
 st.markdown("""
     <style>
-    /* 1. THE FOUNDATION: MATTE BLACK & MONOCHROME */
-    :root {
-        --bg-black: #0A0A0A;
-        --card-gray: #141414;
-        --accent-gold: #D4AF37;
-        --text-off-white: #E5E5E5;
-        --border-dim: #262626;
-    }
-
-    /* Hide Streamlit Header & Integrate Top Bar */
-    header[data-testid="stHeader"] {
-        background-color: var(--bg-black) !important;
-        border-bottom: 1px solid var(--border-dim);
-    }
-    
+    /* 1. CLEAN LIGHT THEME BASE */
     .stApp {
-        background-color: var(--bg-black);
-        color: var(--text-off-white);
+        background-color: #FFFFFF;
+        color: #1F2937;
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
 
-    /* 2. SIDEBAR: ALIGNED & ULTRA-CLEAN */
+    /* Standardizing the Top Header */
+    header[data-testid="stHeader"] {
+        background-color: #F9FAFB !important;
+        border-bottom: 1px solid #E5E7EB;
+    }
+
+    /* 2. SIDEBAR ALIGNMENT & CLEAN BUTTONS */
     section[data-testid="stSidebar"] {
-        background-color: #050505 !important;
-        border-right: 1px solid var(--border-dim);
+        background-color: #F3F4F6 !important;
+        border-right: 1px solid #E5E7EB;
     }
     
-    /* Pushes sidebar content down to match main page heading level */
+    /* Aligns sidebar content to main page heading level */
     section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
-        padding-top: 4.5rem !important;
+        padding-top: 3rem !important;
     }
 
-    /* Minimalist Sidebar Buttons */
     section[data-testid="stSidebar"] .stButton>button {
-        background: transparent !important;
-        color: #737373 !important;
-        border: none !important;
-        border-radius: 0px;
-        border-left: 2px solid transparent !important;
+        background-color: transparent !important;
+        color: #4B5563 !important;
+        border: 1px solid transparent !important;
         text-align: left;
-        padding-left: 1rem;
+        font-weight: 500;
+        border-radius: 6px;
         transition: 0.2s;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        font-size: 0.75rem;
     }
 
     section[data-testid="stSidebar"] .stButton>button:hover {
-        color: var(--accent-gold) !important;
-        border-left: 2px solid var(--accent-gold) !important;
+        background-color: #E5E7EB !important;
+        color: #111827 !important;
     }
 
-    /* 3. HERO SECTION: TYPOGRAPHY FOCUS */
+    /* 3. HERO SECTION - SIMPLE & PROFESSIONAL */
     .hero-container {
-        padding: 8rem 0rem 4rem 0rem;
+        padding: 4rem 1rem;
         text-align: center;
-        border-bottom: 1px solid var(--border-dim);
-        margin-bottom: 4rem;
+        background-color: #F9FAFB;
+        border-bottom: 1px solid #E5E7EB;
+        margin-bottom: 3rem;
     }
 
     .main-title {
-        font-size: 4.5rem !important;
-        font-weight: 300 !important; /* Elegant thin weight */
-        letter-spacing: 20px !important;
-        color: var(--text-off-white) !important;
-        text-transform: uppercase;
-        margin: 0 !important;
+        font-size: 3rem !important;
+        font-weight: 700 !important;
+        color: #111827 !important;
+        margin-bottom: 0.5rem !important;
     }
 
     .sub-title {
-        color: #525252 !important;
-        font-size: 0.8rem !important;
-        text-transform: uppercase;
-        letter-spacing: 6px;
-        margin-top: 1.5rem !important;
+        color: #6B7280 !important;
+        font-size: 1.1rem !important;
+        font-weight: 400;
     }
 
-    /* 4. FEATURE CARDS: SHARP & STRUCTURED */
+    /* 4. FEATURE CARDS - WHITE TILES */
     .feature-card {
-        background: var(--card-gray);
-        padding: 3rem;
-        border: 1px solid var(--border-dim);
-        border-radius: 0px; /* Sharp corners */
-        text-align: left;
-        min-height: 320px;
-        transition: 0.3s;
+        background: #FFFFFF;
+        padding: 2rem;
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        text-align: center;
+        min-height: 280px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 
-    .feature-card:hover {
-        border-color: var(--accent-gold);
-    }
-
-    .card-icon {
-        color: var(--accent-gold);
-        font-size: 1.5rem;
-        margin-bottom: 1rem;
-    }
-
-    /* 5. MAIN BUTTONS: HIGH CONTRAST */
+    /* 5. ACTION BUTTONS - PROFESSIONAL BLUE */
     .stButton>button {
         width: 100%;
-        border-radius: 0px; /* Sharp edges */
-        height: 3.5em;
-        font-weight: 500;
-        background-color: var(--accent-gold) !important;
-        color: black !important;
+        border-radius: 6px;
+        height: 3em;
+        font-weight: 600;
+        background-color: #2563EB !important;
+        color: white !important;
         border: none;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        transition: 0.3s;
+        transition: background-color 0.2s;
     }
 
     .stButton>button:hover {
-        background-color: #F9E076 !important;
-        transform: translateY(-2px);
+        background-color: #1D4ED8 !important;
+    }
+
+    /* Utility UI tweaks */
+    [data-testid="stFileUploadDropzone"] {
+        background-color: #F9FAFB !important;
+        border: 2px dashed #D1D5DB !important;
     }
     
-    /* Code/JSON block styling */
-    pre { background-color: #000 !important; border: 1px solid #262626 !important; }
+    footer {visibility: hidden;}
     </style>
 """, unsafe_allow_html=True)
 
-# --- CORE LOGIC ---
+# --- LOGIC ---
 def process_encryption(uploaded_file, carrier_img_path):
     key = Fernet.generate_key()
     cipher = Fernet(key)
@@ -166,7 +146,7 @@ def process_recovery(stego_image, master_key):
     except:
         return None, None
 
-# --- SESSION MGMT ---
+# --- STATE ---
 if "page" not in st.session_state:
     st.session_state.page = "home"
 if "vault_created" not in st.session_state:
@@ -179,94 +159,90 @@ def reset_and_clear():
 
 # --- SIDEBAR ---
 with st.sidebar:
-    st.markdown("<h2 style='letter-spacing: 5px; color: white; font-weight: 400;'>S-VAULT</h2>", unsafe_allow_html=True)
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    if st.button("01. DASHBOARD"):
+    st.markdown("<h2 style='color: #111827;'>Shadow-Vault</h2>", unsafe_allow_html=True)
+    st.markdown("---")
+    if st.button("🏠 Home Dashboard"):
         st.session_state.page = "home"; st.rerun()
-    if st.button("02. SECURE FILE"):
+    if st.button("📤 Secure a File"):
         st.session_state.page = "convert"; st.rerun()
-    if st.button("03. RECOVER DATA"):
+    if st.button("📥 Recover Data"):
         st.session_state.page = "recover"; st.rerun()
-        
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    if st.button("X. RESET SESSION"):
+    st.markdown("---")
+    if st.button("🗑️ Reset Session"):
         reset_and_clear()
 
-# --- MAIN INTERFACE ---
+# --- MAIN PAGES ---
 if st.session_state.page == "home":
     st.markdown("""
     <div class='hero-container'>
-        <h1 class='main-title'>SHADOW VAULT</h1>
-        <p class='sub-title'>High-Level Steganographic Protocol</p>
+        <h1 class='main-title'>Shadow-Vault</h1>
+        <p class='sub-title'>Simple & Secure File Steganography</p>
     </div>
     """, unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns(3)
     with col1:
         st.markdown("""<div class='feature-card'>
-        <div class='card-icon'>[ 01 ]</div>
-        <h4 style='letter-spacing:2px;'>ENCRYPTION</h4>
-        <p style='color:#737373; font-size:0.9rem; margin-top:1rem;'>AES-256 Fernet hardening applied to raw binary before injection.</p>
+        <h3 style='color:#2563EB;'>Encryption</h3>
+        <p style='color:#4B5563;'>Files are secured using AES-256 (Fernet) encryption before being hidden.</p>
         </div>""", unsafe_allow_html=True)
     with col2:
         st.markdown("""<div class='feature-card'>
-        <div class='card-icon'>[ 02 ]</div>
-        <h4 style='letter-spacing:2px;'>STEALTH</h4>
-        <p style='color:#737373; font-size:0.9rem; margin-top:1rem;'>Least Significant Bit (LSB) manipulation within PNG architecture.</p>
+        <h3 style='color:#2563EB;'>Stealth</h3>
+        <p style='color:#4B5563;'>Data is embedded invisibly into the pixel layers of a standard PNG image.</p>
         </div>""", unsafe_allow_html=True)
     with col3:
         st.markdown("""<div class='feature-card'>
-        <div class='card-icon'>[ 03 ]</div>
-        <h4 style='letter-spacing:2px;'>INTEGRITY</h4>
-        <p style='color:#737373; font-size:0.9rem; margin-top:1rem;'>Zero-loss payload preservation including original metadata.</p>
+        <h3 style='color:#2563EB;'>Privacy</h3>
+        <p style='color:#4B5563;'>No data is stored. Processing happens entirely in your browser's session memory.</p>
         </div>""", unsafe_allow_html=True)
 
     st.markdown("<br><br>", unsafe_allow_html=True)
     
     _, btn1, gap, btn2, _ = st.columns([2, 3, 0.5, 3, 2])
     with btn1:
-        if st.button("SECURE A FILE"):
+        if st.button("GET STARTED"):
             st.session_state.page = "convert"; st.rerun()
     with btn2:
-        if st.button("RECOVER DATA"):
+        if st.button("RECOVER FILE"):
             st.session_state.page = "recover"; st.rerun()
 
 elif st.session_state.page == "convert":
-    st.markdown("<h3 style='letter-spacing:3px;'>[ INITIALIZE ENCRYPTION ]</h3>", unsafe_allow_html=True)
-    u_file = st.file_uploader("Select Target File", type=["pdf", "zip", "docx", "txt"])
+    st.markdown("## Secure a File")
+    u_file = st.file_uploader("Choose a file (PDF, ZIP, DOCX, TXT)", type=["pdf", "zip", "docx", "txt"])
     
     if u_file and not st.session_state.vault_created:
-        _, mid, _ = st.columns([3, 4, 3])
+        _, mid, _ = st.columns([3, 2, 3])
         with mid:
-            if st.button("EXECUTE"):
+            if st.button("Process Vault"):
                 if os.path.exists("vault_1.png"):
-                    with st.spinner("Processing..."):
+                    with st.spinner("Creating vault..."):
                         final_img, m_key = process_encryption(u_file, "vault_1.png")
                         st.session_state.final_img = final_img
                         st.session_state.m_key = m_key.encode()
                         st.session_state.vault_created = True
                         st.rerun()
-                else: st.error("ERR: CARRIER_MISSING")
+                else: st.error("System Error: Carrier image not found.")
 
     if st.session_state.vault_created:
-        st.success("PROTOCOL COMPLETE")
-        st.download_button("DOWNLOAD MASTER KEY", st.session_state.m_key, "master_key.key")
-        st.download_button("DOWNLOAD VAULT IMAGE", st.session_state.final_img, "vault.png")
+        st.success("Vault Created Successfully")
+        st.download_button("Download Master Key", st.session_state.m_key, "master_key.key")
+        st.download_button("Download Vault Image", st.session_state.final_img, "vault.png")
 
 elif st.session_state.page == "recover":
-    st.markdown("<h3 style='letter-spacing:3px;'>[ INITIALIZE RECOVERY ]</h3>", unsafe_allow_html=True)
-    r_img = st.file_uploader("Upload Vault PNG", type=["png"])
-    r_key = st.file_uploader("Upload Master Key", type=["key", "txt"])
+    st.markdown("## Recover Hidden Data")
+    r_img = st.file_uploader("Upload Vault Image (PNG)", type=["png"])
+    r_key = st.file_uploader("Upload Master Key (.key)", type=["key", "txt"])
 
     if r_img and r_key:
-        _, mid, _ = st.columns([3, 4, 3])
+        _, mid, _ = st.columns([3, 2, 3])
         with mid:
-            if st.button("DECRYPT"):
+            if st.button("Decrypt Data"):
                 bytes_data, meta = process_recovery(r_img, r_key.read().decode().strip())
                 if bytes_data:
                     st.balloons()
+                    st.write("### File Metadata")
                     st.json(meta)
-                    st.download_button("SAVE RECOVERED FILE", bytes_data, meta["filename"])
+                    st.download_button("Save Recovered File", bytes_data, meta["filename"])
                 else:
-                    st.error("ERR: AUTHENTICATION_FAILED")
+                    st.error("Error: Key mismatch or corrupted image.")
