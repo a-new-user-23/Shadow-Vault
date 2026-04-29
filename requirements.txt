@@ -1,6 +1,6 @@
-streamlit==1.45.1
-stegano==0.11.3
-cryptography==45.0.2
-pillow==11.2.1
-filetype==1.2.0
-opencv-python-headless==4.10.0.84
+streamlit
+stegano==2.4.1
+cryptography
+pillow
+filetype
+opencv-python-headless
