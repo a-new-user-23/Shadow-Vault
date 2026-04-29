@@ -17,7 +17,7 @@ st.set_page_config(
 
 st.markdown("""
     <style>
-    /* 1. ELIMINATE THE WHITE STRIP (Streamlit Header) */
+    /* 1. ELIMINATE THE WHITE STRIP & HEADER INTEGRATION */
     header[data-testid="stHeader"] {
         background-color: rgba(15, 23, 42, 0.95) !important;
         backdrop-filter: blur(10px);
@@ -34,7 +34,44 @@ st.markdown("""
         color: #f8f9fa;
     }
 
-    /* 3. PREMIUM HERO SECTION */
+    /* 3. SIDEBAR STYLING - IMPROVED VISIBILITY & ALIGNMENT */
+    section[data-testid="stSidebar"] {
+        background-color: #0b1120 !important;
+        border-right: 1px solid #1e293b;
+    }
+
+    /* Adjusting the sidebar top padding to align with main page content level */
+    section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+        padding-top: 2rem !important;
+    }
+
+    /* Side Bar Action Buttons - Enhanced Visibility */
+    section[data-testid="stSidebar"] .stButton>button {
+        background-color: #1e293b !important;
+        color: #f8f9fa !important;
+        border: 1px solid #334155 !important;
+        border-radius: 10px;
+        height: 3.5em;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        margin-bottom: 0.5rem;
+    }
+
+    section[data-testid="stSidebar"] .stButton>button:hover {
+        background-color: #ff4b4b !important;
+        border-color: #ff4b4b !important;
+        color: white !important;
+        box-shadow: 0 4px 15px rgba(255, 75, 75, 0.3);
+    }
+
+    /* Reset Session Button - Distinctive Style */
+    .reset-btn button {
+        background-color: rgba(239, 68, 68, 0.1) !important;
+        color: #ef4444 !important;
+        border: 1px solid #ef4444 !important;
+    }
+
+    /* 4. PREMIUM HERO SECTION */
     .hero-container {
         background: linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%);
         padding: 5rem 2rem;
@@ -71,16 +108,17 @@ st.markdown("""
         font-weight: 500;
     }
 
-    /* 4. SYMMETRICAL FEATURE CARDS */
-    [data-testid="column"] {
-        display: flex !important;
-        flex-direction: column !important;
-    }
-
-    [data-testid="stVerticalBlock"] {
-        flex: 1 !important;
-        display: flex !important;
-        flex-direction: column !important;
+    /* 5. MAIN PAGE BUTTONS & CARDS */
+    .stButton>button {
+        width: 100%;
+        border-radius: 12px;
+        height: 4.5em;
+        font-weight: 700;
+        background-color: #ff4b4b !important;
+        color: white !important;
+        border: none;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
     }
 
     .feature-card {
@@ -94,51 +132,15 @@ st.markdown("""
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transition: all 0.4s ease;
     }
 
     .feature-card:hover {
         border: 1px solid rgba(255, 75, 75, 0.5);
-        transform: translateY(-12px);
-        background: rgba(30, 41, 59, 0.8);
-        box-shadow: 0 15px 35px rgba(255, 75, 75, 0.1);
-    }
-
-    /* 5. BUTTONS */
-    .stButton>button {
-        width: 100%;
-        border-radius: 12px;
-        height: 4.5em;
-        font-weight: 700;
-        background-color: #ff4b4b !important;
-        color: white !important;
-        border: none;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .stButton>button:hover {
-        background-color: #ff3333 !important;
-        box-shadow: 0 0 20px rgba(255, 75, 75, 0.4);
-        transform: scale(1.02);
-    }
-
-    /* Sidebar Sidebar Styling */
-    section[data-testid="stSidebar"] {
-        background-color: #0b1120 !important;
-        border-right: 1px solid #1e293b;
-    }
-
-    /* Success/Download Buttons */
-    .stDownloadButton>button {
-        background-color: #10b981 !important;
-        height: 3.5em;
-        border: none;
+        transform: translateY(-10px);
     }
     </style>
 """, unsafe_allow_html=True)
-
 
 # --- CORE LOGIC ---
 def process_encryption(uploaded_file, carrier_img_path):
@@ -182,24 +184,34 @@ def reset_and_clear():
 
 # --- SIDEBAR NAVIGATION ---
 with st.sidebar:
-    st.markdown("<h2 style='text-align: left !important;'>🛡️ Shadow-Vault</h2>", unsafe_allow_html=True)
+    # Top Spacer to align with main page content
+    st.markdown("<div style='height: 1.5rem;'></div>", unsafe_allow_html=True)
+    
+    st.markdown("<h2 style='text-align: left !important; color: white;'>🛡️ Shadow-Vault</h2>", unsafe_allow_html=True)
     st.markdown("---")
-    if st.button("🏠 Home Dashboard"):
+    
+    if st.button("🏠 HOME DASHBOARD"):
         st.session_state.page = "home"
         st.rerun()
-    if st.button("📤 Secure a File"):
+    if st.button("📤 SECURE A FILE"):
         st.session_state.page = "convert"
         st.rerun()
-    if st.button("📥 Recover Data"):
+    if st.button("📥 RECOVER DATA"):
         st.session_state.page = "recover"
         st.rerun()
+        
     st.markdown("---")
+    
     with st.expander("📖 About This Tool"):
-        st.info("Hide encrypted PDF, ZIP, DOCX, or TXT files inside PNG images. Max size 10MB. No data is ever stored on our servers.")
-    if st.button("🗑️ Reset Session"):
+        st.info("Hide encrypted PDF, ZIP, DOCX, or TXT files inside PNG images. Max size 10MB. No data is stored on our servers.")
+    
+    # Styled Reset Button
+    st.markdown("<div class='reset-btn'>", unsafe_allow_html=True)
+    if st.button("🗑️ RESET SESSION"):
         reset_and_clear()
+    st.markdown("</div>", unsafe_allow_html=True)
 
-# --- HOME DASHBOARD ---
+# --- PAGE CONTENT ---
 if st.session_state.page == "home":
     st.markdown("""
     <div class='hero-container'>
@@ -221,7 +233,6 @@ if st.session_state.page == "home":
 
     st.markdown("<br><br><h3 style='text-align: center;'>Select Operation</h3>", unsafe_allow_html=True)
     
-    # Symmetrical Buttons
     l_space, btn1, gap, btn2, r_space = st.columns([2, 3, 0.5, 3, 2])
     with btn1:
         if st.button("START ENCRYPTION"):
@@ -230,7 +241,6 @@ if st.session_state.page == "home":
         if st.button("START RECOVERY"):
             st.session_state.page = "recover"; st.rerun()
 
-# --- ENCRYPTION PAGE ---
 elif st.session_state.page == "convert":
     st.markdown("### 📤 Create a Secure Vault")
     u_file = st.file_uploader("Upload File to Hide", type=["pdf", "zip", "docx", "txt"])
@@ -254,7 +264,6 @@ elif st.session_state.page == "convert":
         st.download_button("📥 DOWNLOAD VAULT IMAGE", st.session_state.final_img, "vault.png")
         if st.button("← Back To Home"): reset_and_clear()
 
-# --- RECOVERY PAGE ---
 elif st.session_state.page == "recover":
     st.markdown("### 📥 Extract Hidden Data")
     r_img = st.file_uploader("Upload Vault Image", type=["png"])
