@@ -239,21 +239,11 @@ with st.sidebar:
 if st.session_state.page == "home":
 
     st.markdown("""
-    st.markdown("""
-<div class='hero-container'>
-    <h1 class='main-title'>SHADOW-VAULT</h1>
-    <p class='sub-title'>Military-Grade Steganography</p>
-    <p style=
-        margin-top:25px;
-        color:#cbd5e1;
-        font-size:1.1rem;
-        font-weight:500;
-        letter-spacing:1px;
-    >
-        Made by Group 5 – Venkatesh, Sukrut, Sanket
-    </p>
-</div>
-""", unsafe_allow_html=True)
+    <div class='hero-container'>
+        <h1 class='main-title'>SHADOW-VAULT</h1>
+        <p class='sub-title'>Military-Grade Steganography</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns(3)
 
